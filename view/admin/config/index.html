@@ -1,0 +1,139 @@
+{extend name="public/base" /}
+{block name="css"}
+{include file="public/bootstrap" /}
+{/block}
+{block name="body"}
+<div class="layuimini-container">
+    <div class="layuimini-main">
+        <div class="container-fluid ">
+            <div class="row mt-5 justify-content-center">
+                <div class="col-md-8 col-sm-12">
+                    <form class="layui-form layuimini-form">
+                        {foreach ($config as $item)}
+                        {if ($item.type === 'text')}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{$item.name}</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]" placeholder=""  value="{$item.value}" class="layui-input">
+                                <tip>{$item.intro}</tip>
+                            </div>
+                        </div>
+                        {elseif ($item.type === 'radio')}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" for="isTest">{$item.name}</label>
+                            <div class="layui-input-block" id="isTest">
+                                <input type="checkbox" lay-skin="switch" lay-filter="testFilter" name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]"
+                                       value="1"
+                                       lay-text="是|否" {if ($item.value == 1)}checked{/if}>
+                            </div>
+                        </div>
+                        {elseif ($item.type === 'file')}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{$item.name}</label>
+                            <div class="layui-input-block layui-upload">
+                                <button type="button" class="layui-btn layui-btn-sm upload">上传</button>
+                                <div class="layui-upload-list upload-image"></div>
+                                <input name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]" type="hidden" value="{$item.value}" class="layui-input upload-input" />
+                            </div>
+                        </div>
+                        {elseif ($item.type === 'textarea')}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{$item.name}</label>
+                            <div class="layui-input-block">
+                                <textarea name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]" class="layui-textarea">{$item.value}</textarea>
+                            </div>
+                        </div>
+                        {/if}
+                        {/foreach}
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="js"}
+<script>
+    layui.use(['form', 'miniTab', 'jquery', 'upload'], function () {
+        let form = layui.form,
+            layer = layui.layer,
+            $ = layui.jquery,
+            miniTab = layui.miniTab,
+            upload = layui.upload;
+
+        let option = { icon: 5 }
+
+        let appendAttachment = function (param = {
+            elem: '',
+            source: '',
+            name: '',
+        }) {
+            $(param.elem).siblings('.upload-image').append('<img src="' + param.source + '" alt="' + param.name + '" class="layui-upload-img" style="max-height: 200px; width: auto;">')
+        }
+
+        $.each($('.upload-input'), (index, item) => {
+            appendAttachment({
+                elem: $(this),
+                source: $(item).val(),
+            })
+        })
+
+        const uploadInst = upload.render({
+            elem: '.upload',
+            url: '{:url("/config/upload")}',
+            accept: 'images',
+            before: function (obj) {
+                const el = this.item;
+                // if (contract_attachment.length > 0) {
+                //     $('#newsImgBox').html('')
+                // }
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    appendAttachment({ elem: el, source: result, name: file.name })
+                });
+            },
+            done: function (res) {
+                if (res.code === 1) {
+                    option.icon = 6;
+                    this.item.siblings('.upload-input').val(res.data.savePath);
+                }
+
+                return layer.msg(res.msg, option)
+            },
+            error: function () {
+                //演示失败状态，并实现重传
+                let demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            },
+        })
+
+        //监听提交
+        form.on('submit(saveBtn)', function (obj) {
+            console.log(obj)
+            $.each(obj.form, (index, item) => {
+                console.log($(item).data('keyword'))
+            })
+            $.post('{:url("/config/update")}', obj.field, function (res) {
+                if (res.code) {
+                    layer.msg(res.msg, {icon: 6});
+                } else {
+                    layer.msg(res.msg, {icon: 5});
+                }
+            })
+
+            return false;
+        });
+
+    });
+</script>
+
+{/block}
