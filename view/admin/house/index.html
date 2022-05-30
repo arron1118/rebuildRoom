@@ -10,7 +10,25 @@
             <form class="layui-form layui-form-pane" lay-filter="searchForm" action="">
                 <div class="layui-form-item">
                     <div class="layui-inline">
-                        <label class="layui-form-label">区域名称</label>
+                        <label class="layui-form-label">区域</label>
+                        <div class="layui-input-inline">
+                            <select name="area_id" lay-filter="areaFilter">
+                                <option value="0">全部</option>
+                                {foreach $areaList as $key => $val}
+                                <option value="{$val.id}">{$val.title}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">楼宇</label>
+                        <div class="layui-input-inline">
+                            <select name="building_id" lay-filter="buildingFilter">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">名称</label>
                         <div class="layui-input-inline">
                             <input type="text" name="title" autocomplete="off" class="layui-input">
                         </div>
@@ -39,24 +57,41 @@
         <table class="layui-table" id="currentTableId" lay-filter="currentTableFilter" lay-even lay-data="">
             <thead>
             <tr>
-                <th lay-data="{field: 'id', title: '编号', width: 100, fixed: 'left'}"></th>
-                <th lay-data="{field: 'title', title: '区域名称', edit: 'text'}"></th>
-                <th lay-data="{field: 'investigation_times_one', title: '一轮排查', align: 'center', templet: '#status'}"></th>
-                <th lay-data="{field: 'investigation_times_two', title: '二轮排查', align: 'center', templet: '#status'}"></th>
-                <th lay-data="{field: 'investigation_times_three', title: '三轮排查', align: 'center', templet: '#status'}"></th>
+                <th lay-data="{field: 'id', title: '编号', width: 100}"></th>
+                <th lay-data="{field: 'title', title: '名称', edit: 'text'}"></th>
+                <th lay-data="{field: 'building_title', title: '所属楼宇'}"></th>
+                <th lay-data="{field: 'area_title', title: '所属区域'}"></th>
+                <th lay-data="{field: 'investigation_times_one', title: '一轮排查', align: 'center', templet: '#investigation_times_one'}"></th>
+                <th lay-data="{field: 'investigation_times_two', title: '二轮排查', align: 'center', templet: '#investigation_times_two'}"></th>
+                <th lay-data="{field: 'investigation_times_three', title: '三轮排查', align: 'center', templet: '#investigation_times_three'}"></th>
                 <th lay-data="{title: '操作', width: 150, toolbar: '#currentTableBar', align: 'center', fixed: 'right'}"></th>
             </tr>
             </thead>
         </table>
-        <script type="text/html" id="hasUser">
-            <span class="text-primary" title="点击查看用户列表">{{d.user_count}}</span>
-        </script>
-        <script type="text/html" id="status">
-            {{# if(d.investigation_times_one === 1 || d.investigation_times_two === 1 || d.investigation_time_three === 1) { }}
-            <input type="checkbox" name="status" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+        <script type="text/html" id="investigation_times_one">
+            {{# if(d.investigation_times_one === 1) { }}
+            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
                    lay-filter="statusFilter" checked>
             {{# } else { }}
-            <input type="checkbox" name="status" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } }}
+        </script>
+        <script type="text/html" id="investigation_times_two">
+            {{# if(d.investigation_times_two === 1) { }}
+            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter" checked>
+            {{# } else { }}
+            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } }}
+        </script>
+        <script type="text/html" id="investigation_times_three">
+            {{# if(d.investigation_times_three === 1) { }}
+            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter" checked>
+            {{# } else { }}
+            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
                    lay-filter="statusFilter">
             {{# } }}
         </script>
@@ -84,7 +119,7 @@
         let option = { icon: 0 };
 
         table.init('currentTableFilter', {
-            url: '{:url("/area/getAreaList")}',
+            url: '{:url("/house/getHouseList")}',
             id: 'currentTable',
             toolbar: '#toolbarDemo',
             defaultToolbar: ['filter', 'exports', 'print', {
@@ -125,13 +160,22 @@
 
             return false
         });
-        form.on('select(tryUserFilter)', function (data) {
-            let params = [];
-            params[data.elem.name] = data.value
-            params = Object.assign({}, form.val('searchForm'), params)
-            reloadTable(params)
+        form.on('select(areaFilter)', function (data) {
+            $.post('{:url("/house/getBuildingList")}', { id: data.value }, function (res) {
+                if (res.code === 1) {
+                    let html = `<option value='0'>全部楼房</option>`
+                    $.each(res.data, (index, item) => {
+                        html += `<option value='${item.id}'>${item.title}</option>`
+                    })
+                    $('select[lay-filter="buildingFilter"]').html(html)
+
+                    form.render('select')
+                }
+            })
+
+            reloadTable(Object.assign({}, form.val('searchForm'), { area_id: data.value }))
         })
-        form.on('select(userStatusFilter)', function (data) {
+        form.on('select(buildingFilter)', function (data) {
             let params = [];
             params[data.elem.name] = data.value
             params = Object.assign({}, form.val('searchForm'), params)
@@ -146,18 +190,35 @@
          */
         table.on('toolbar(currentTableFilter)', function (obj) {
             if (obj.event === 'add') {  // 监听添加操作
-                layer.prompt({ title: '添加区域' }, function (input, index) {
-                    console.log(input)
+                layer.prompt({ title: '添加' }, function (input, index) {
                     if (input === '') {
-                        layer.msg('请输入区域名称', { icon: 2 });
+                        option.icon = 2
+                        layer.msg('请输入名称', option);
                         return false;
                     }
+                    let area = $('select[lay-filter="areaFilter"]')
+                    let building = $('select[lay-filter="buildingFilter"]')
+                    let param = { title: input }
+                    param[area.prop('name')] = area.val()
+                    param[building.prop('name')] = building.val()
 
-                    $.post('{:url("/area/save")}', { title: input}, function (res) {
+                    if (parseInt(area.val()) <= 0) {
+                        option.icon = 2
+                        layer.msg('请选择区域', option)
+                        return false
+                    }
+
+                    if (parseInt(building.val()) <= 0) {
+                        option.icon = 2
+                        layer.msg('请选择楼房', option)
+                        return false
+                    }
+
+                    $.post('{:url("/house/save")}', param, function (res) {
                         if (res.code === 1) {
                             option.icon = 1
                             layer.close(index)
-                            reloadTable()
+                            reloadTable(form.val('searchForm'))
                         }
 
                         layer.msg(res.msg, option)
@@ -167,7 +228,7 @@
         });
 
         let update = function (param) {
-            $.post('{:url("/area/update")}', param, function (res) {
+            $.post('{:url("/house/update")}', param, function (res) {
                 let option = {icon: 0};
                 if (res.code === 1) {
                     option.icon = 1
@@ -191,7 +252,7 @@
 
         // 单元格编辑
         table.on('edit(currentTableFilter)', function (obj) {
-            $.post('{:url("/area/update")}', obj.data, function (res) {
+            $.post('{:url("/house/update")}', obj.data, function (res) {
                 if (res.code === 1) {
                     option.icon = 1
                 }
@@ -204,12 +265,12 @@
             switch (obj.event) {
                 case 'delete':
                     layer.confirm('确认删除数据？', function (index) {
-                        $.post("{:url('/area/delete')}", { id: obj.data.id }, function (res) {
+                        $.post("{:url('/house/delete')}", { id: obj.data.id }, function (res) {
                             layer.close(index);
                             let option = {icon: 0};
                             if (res.code === 1) {
                                 option.icon = 1
-                                reloadTable()
+                                reloadTable(form.val('searchForm'))
                             }
 
                             layer.msg(res.msg, option)

@@ -5,6 +5,7 @@ namespace app\common\controller;
 
 use app\common\model\Admin;
 use app\common\library\Attachment;
+use app\common\model\Config as SiteConfig;
 use think\Request;
 use app\BaseController;
 use app\common\middleware\Check;
@@ -36,6 +37,8 @@ class AdminController extends BaseController
             $this->userInfo = Admin::where('token', $token)->find();
         }
         $this->view->assign('userInfo', $this->userInfo);
+
+        $this->view->assign('siteConfig', SiteConfig::select());
     }
 
     public function error($msg = '')
@@ -64,7 +67,8 @@ class AdminController extends BaseController
 
     public function upload()
     {
-        $upload = (new Attachment())->upload('file');
+        $site_watermark_engine = SiteConfig::getByKeyword('site_watermark_engine');
+        $upload = (new Attachment())->upload('file', 'attachment', (bool)(int) $site_watermark_engine->value);
 
         if (!$upload) {
             $this->error('上传失败: 未找到文件');

@@ -1,12 +1,13 @@
 <?php
 declare (strict_types = 1);
 
-namespace app\admin\controller;
+namespace app\api\controller;
 
 use think\Request;
-use app\common\controller\AdminController;
+use app\common\controller\ApiController;
+use app\common\model\Investigation as InvestigationModel;
 
-class Room extends AdminController
+class Investigation extends ApiController
 {
     /**
      * 显示资源列表
@@ -15,17 +16,22 @@ class Room extends AdminController
      */
     public function index()
     {
-        return $this->view->fetch();
-    }
+        $page = $this->params['page'] ?? 1;
+        $limit = $this->params['limit'] ?? 10;
+        $title = $this->params['title'] ?? '';
+        $map = [];
 
-    /**
-     * 显示创建资源表单页.
-     *
-     * @return \think\Response
-     */
-    public function create()
-    {
-        //
+        if ($title) {
+            $map[] = ['title', 'like', '%' . $title . '%'];
+        }
+
+        $this->returnData['total'] = $this->model::where($map)->count();
+        $this->returnData['data'] = $this->model::where($map)
+            ->order('id desc')
+            ->limit(($page - 1) * $limit, $limit)
+            ->select();
+
+        $this->returnApiData(lang('Done'));
     }
 
     /**
@@ -46,17 +52,6 @@ class Room extends AdminController
      * @return \think\Response
      */
     public function read($id)
-    {
-        //
-    }
-
-    /**
-     * 显示编辑资源表单页.
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function edit($id)
     {
         //
     }

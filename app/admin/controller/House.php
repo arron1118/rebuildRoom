@@ -5,16 +5,17 @@ namespace app\admin\controller;
 
 use think\Request;
 use app\common\controller\AdminController;
-use app\common\model\Building as BuildingModel;
+use app\common\model\House as HouseModel;
+use app\common\model\Building;
 use app\common\model\Area;
 
-class Building extends AdminController
+class House extends AdminController
 {
     protected function initialize()
     {
         parent::initialize();
 
-        $this->model = BuildingModel::class;
+        $this->model = HouseModel::class;
     }
 
     /**
@@ -28,13 +29,14 @@ class Building extends AdminController
         return $this->view->fetch();
     }
 
-    public function getBuildingList(Request $request)
+    public function getHouseList(Request $request)
     {
         if ($request->isAjax()) {
             $page = (int) $request->param('page', 1);
             $limit = (int) $request->param('limit', 10);
             $title = $request->param('title', '');
             $areaId = (int) $request->param('area_id', 0);
+            $buildingId = (int) $request->param('building_id', 0);
             $map = [];
 
             if ($title) {
@@ -45,10 +47,14 @@ class Building extends AdminController
                 $map[] = ['area_id', '=', $areaId];
             }
 
+            if ($buildingId) {
+                $map[] = ['building_id', '=', $buildingId];
+            }
+
             $this->returnData['total'] = $this->model::where($map)->count();
-            $this->returnData['data'] = $this->model::withCount(['house'])
-                ->with(['area'])
-                ->hidden(['area'])
+            $this->returnData['data'] = $this->model::withCount(['investigation'])
+                ->with(['building', 'area'])
+                ->hidden(['building', 'area'])
                 ->where($map)
                 ->order('id desc')
                 ->limit(($page - 1) * $limit, $limit)
@@ -58,6 +64,13 @@ class Building extends AdminController
         }
 
         $this->error();
+    }
+
+    public function getBuildingList($id)
+    {
+        $this->returnData['code'] = 1;
+        $this->returnData['data'] = Building::where('area_id', $id)->select();
+        $this->success(lang('Done'));
     }
 
     /**
@@ -79,8 +92,7 @@ class Building extends AdminController
     public function save(Request $request)
     {
         if ($request->isPost()) {
-            $params = $request->only(['title', 'area_id']);
-            $params['admin_id'] = $this->userInfo->id;
+            $params = $request->only(['title', 'area_id', 'building_id']);
             (new $this->model)->save($params);
             $this->returnData['code'] = 1;
             $this->success(lang('Done'));
@@ -140,8 +152,8 @@ class Building extends AdminController
     public function delete($id)
     {
         if ($this->request->isPost()) {
-            $building = $this->model::find($id);
-            $building->delete();
+            $room = $this->model::find($id);
+            $room->delete();
             $this->returnData['code'] = 1;
             $this->success(lang('Done'));
         }

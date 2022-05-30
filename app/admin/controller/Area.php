@@ -29,9 +29,9 @@ class Area extends AdminController
     public function getAreaList(Request $request)
     {
         if ($request->isAjax()) {
-            $page = (int) $this->request->param('page', 1);
-            $limit = (int) $this->request->param('limit', 10);
-            $title = $this->request->param('title', '');
+            $page = (int) $request->param('page', 1);
+            $limit = (int) $request->param('limit', 10);
+            $title = $request->param('title', '');
             $map = [];
 
             if ($title) {
@@ -39,7 +39,8 @@ class Area extends AdminController
             }
 
             $this->returnData['total'] = $this->model::where($map)->count();
-            $this->returnData['data'] = $this->model::where($map)
+            $this->returnData['data'] = $this->model::withCount(['building', 'house'])
+                ->where($map)
                 ->order('id desc')
                 ->limit(($page - 1) * $limit, $limit)
                 ->select();
@@ -70,6 +71,7 @@ class Area extends AdminController
     {
         if ($request->isPost()) {
             $params = $request->only(['title']);
+            $params['admin_id'] = $this->userInfo->id;
             (new $this->model)->save($params);
             $this->returnData['code'] = 1;
             $this->success(lang('Done'));
@@ -109,7 +111,7 @@ class Area extends AdminController
     public function update(Request $request, $id)
     {
         if ($request->isPost()) {
-            $params = $request->only(['title']);
+            $params = $request->only(['title', 'investigation_times_one', 'investigation_times_two', 'investigation_times_three']);
             $area = $this->model::find($id);
             $area->save($params);
             $this->returnData['code'] = 1;

@@ -6,6 +6,7 @@ namespace app\admin\controller;
 use app\common\controller\AdminController;
 use think\exception\ValidateException;
 use think\Request;
+use app\common\model\Admin;
 
 class Index extends AdminController
 {
@@ -14,8 +15,22 @@ class Index extends AdminController
         return $this->view->fetch();
     }
 
+    protected function addAdmin()
+    {
+        $admin = Admin::select()->toArray();
+        if (empty($admin)) {
+            $params = [
+                'username' => 'admin',
+                'password' => password_hash('123456', PASSWORD_BCRYPT),
+            ];
+            (new Admin())->save($params);
+        }
+    }
+
     public function login(Request $request)
     {
+        $this->addAdmin();
+
         if ($this->userInfo && $this->userInfo->token_expire_time > time() && $this->userInfo->getData('status')) {
             return redirect((string) url('/index'));
         }
@@ -26,7 +41,7 @@ class Index extends AdminController
 //            }
             $params = $request->param();
 
-            $user = \app\common\model\Admin::getByUsername($params['username']);
+            $user = Admin::getByUsername($params['username']);
             if (!$user) {
                 $this->error(lang('Account is incorrect'));
             }
@@ -52,7 +67,7 @@ class Index extends AdminController
             cookie('RB_TOKEN', $user->token, $this->token_expire_time);
 
             $this->returnData['code'] = 1;
-            $this->returnData['data']['url'] = '/index';
+            $this->returnData['data']['url'] = (string) url('/index');
             $this->success(lang('Logined'));
         }
 

@@ -9,46 +9,45 @@
             <div class="row mt-5 justify-content-center">
                 <div class="col-md-8 col-sm-12">
                     <form class="layui-form layuimini-form">
-                        {foreach ($config as $item)}
-                        {if ($item.type === 'text')}
+                        {foreach ($siteConfig as $item)}
                         <div class="layui-form-item">
                             <label class="layui-form-label">{$item.name}</label>
                             <div class="layui-input-block">
-                                <input type="text" name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]" placeholder=""  value="{$item.value}" class="layui-input">
-                                <tip>{$item.intro}</tip>
-                            </div>
-                        </div>
-                        {elseif ($item.type === 'radio')}
-                        <div class="layui-form-item">
-                            <label class="layui-form-label" for="isTest">{$item.name}</label>
-                            <div class="layui-input-block" id="isTest">
-                                <input type="checkbox" lay-skin="switch" lay-filter="testFilter" name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]"
+                                {switch $item.type}
+                                {case radio}
+                                <input type="checkbox" lay-skin="switch" lay-filter="testFilter" name="param[{$item.keyword}]" data-type="{$item.type}"
                                        value="1"
                                        lay-text="是|否" {if ($item.value == 1)}checked{/if}>
-                            </div>
-                        </div>
-                        {elseif ($item.type === 'file')}
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">{$item.name}</label>
-                            <div class="layui-input-block layui-upload">
+                                {/case}
+                                {case file}
                                 <button type="button" class="layui-btn layui-btn-sm upload">上传</button>
                                 <div class="layui-upload-list upload-image"></div>
-                                <input name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]" type="hidden" value="{$item.value}" class="layui-input upload-input" />
+                                <input name="param[{$item.keyword}]" data-type="{$item.type}" type="hidden" value="{$item.value}" class="layui-input upload-input" />
+                                {/case}
+                                {case textarea}
+                                <textarea name="param[{$item.keyword}]" data-type="{$item.type}" class="layui-textarea">{$item.value}</textarea>
+                                {/case}
+                                {case select}
+                                {php} $options = json_decode($item['value'], true); {/php}
+                                <select name="param[{$item.keyword}]" data-type="{$item.type}">
+                                    {foreach $options as $key => $val}
+                                    <option value="{$key}" {if $item.content == $key}selected{/if}>{$val}</option>
+                                    {/foreach}
+                                </select>
+                                {/case}
+                                {default /}
+                                <input type="text" name="param[{$item.keyword}]" data-type="{$item.type}" placeholder=""  value="{$item.value}" class="layui-input">
+                                {/switch}
+                                {if $item.tip}
+                                <tip>{$item.tip}</tip>
+                                {/if}
                             </div>
                         </div>
-                        {elseif ($item.type === 'textarea')}
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">{$item.name}</label>
-                            <div class="layui-input-block">
-                                <textarea name="param[{$item.keyword}]" data-keyword="param[{$item.keyword}][name]" class="layui-textarea">{$item.value}</textarea>
-                            </div>
-                        </div>
-                        {/if}
                         {/foreach}
 
                         <div class="layui-form-item">
                             <div class="layui-input-block">
-                                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
+                                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">保 存</button>
                             </div>
                         </div>
                     </form>
@@ -67,17 +66,20 @@
             miniTab = layui.miniTab,
             upload = layui.upload;
 
-        let option = { icon: 5 }
+        let option = { icon: 2 }
 
         let appendAttachment = function (param = {
             elem: '',
             source: '',
             name: '',
         }) {
-            $(param.elem).siblings('.upload-image').append('<img src="' + param.source + '" alt="' + param.name + '" class="layui-upload-img" style="max-height: 200px; width: auto;">')
+            if (param.source !== '') {
+                $(param.elem).siblings('.upload-image').append('<img src="' + param.source + '" alt="' + param.name + '" class="layui-upload-img" style="max-height: 100px; width: auto;">')
+            }
         }
 
-        $.each($('.upload-input'), (index, item) => {
+        $.each($('.upload-input'), function (index, item) {
+            let img = $(item).val()
             appendAttachment({
                 elem: $(this),
                 source: $(item).val(),
@@ -90,9 +92,7 @@
             accept: 'images',
             before: function (obj) {
                 const el = this.item;
-                // if (contract_attachment.length > 0) {
-                //     $('#newsImgBox').html('')
-                // }
+                $(this.item).siblings('.upload-image').html('')
                 //预读本地文件示例，不支持ie8
                 obj.preview(function (index, file, result) {
                     appendAttachment({ elem: el, source: result, name: file.name })
@@ -100,7 +100,7 @@
             },
             done: function (res) {
                 if (res.code === 1) {
-                    option.icon = 6;
+                    option.icon = 1;
                     this.item.siblings('.upload-input').val(res.data.savePath);
                 }
 
@@ -118,16 +118,25 @@
 
         //监听提交
         form.on('submit(saveBtn)', function (obj) {
-            console.log(obj)
-            $.each(obj.form, (index, item) => {
-                console.log($(item).data('keyword'))
-            })
-            $.post('{:url("/config/update")}', obj.field, function (res) {
-                if (res.code) {
-                    layer.msg(res.msg, {icon: 6});
-                } else {
-                    layer.msg(res.msg, {icon: 5});
+            let fields = {}
+            $.each(obj.form, function (index, item) {
+                let name = $(item).prop('name'), type = $(item).data('type');
+                if (name.indexOf('param') !== -1 && obj.field.hasOwnProperty(name)) {
+                    fields[name + '[value]'] = $(item).val();
+                    fields[name + '[type]'] = type
                 }
+            });
+            if (!obj.field.hasOwnProperty('param[site_watermark_engine]')) {
+                fields['param[site_watermark_engine][value]'] = 0;
+                fields['param[site_watermark_engine][type]'] = 'radio';
+            }
+
+            $.post('{:url("/config/update")}', fields, function (res) {
+                if (res.code === 1) {
+                    option.icon = 1;
+                }
+
+                return layer.msg(res.msg, option)
             })
 
             return false;

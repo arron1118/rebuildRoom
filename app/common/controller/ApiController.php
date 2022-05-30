@@ -4,6 +4,8 @@ declare (strict_types = 1);
 namespace app\common\controller;
 
 use app\common\library\Aes;
+use app\common\library\Attachment;
+use app\common\model\Config as SiteConfig;
 use app\common\model\User as UserModel;
 use think\Request;
 use app\BaseController;
@@ -13,8 +15,6 @@ class ApiController extends BaseController
     protected $noNeedLogin = ['login', 'getAesEncodeData', 'getAesDecodeData', 'getSiteInfo'];
 
     protected $userInfo = null;
-
-    protected $userType = 'user';
 
     protected $UserModel = null;
 
@@ -39,7 +39,6 @@ class ApiController extends BaseController
         $this->aes = new Aes();
         $this->UserModel = UserModel::class;
         $this->params = $this->getRequestParams();
-        $this->userType = $this->params['userType'] ?? null;
         $this->token = $this->params['token'] ?? null;
         $action = $this->request->action();
 
@@ -50,23 +49,7 @@ class ApiController extends BaseController
                 $this->returnApiData();
             }
 
-            if (!$this->userType) {
-                $this->returnData['code'] = 0;
-                $this->returnData['msg'] = '未提供正确的参数：userType';
-                $this->returnApiData();
-            }
-
-            if ($this->userType === 'user') {
-                $this->userInfo = UserModel::where('token', $this->token)->find();
-
-                if ($this->userInfo && $this->userInfo->getData('is_test') && $this->userInfo->getData('test_endtime') < time()) {
-                    $this->userInfo->status = 0;
-                    $this->userInfo->save();
-                }
-            } else if ($this->userType === 'company') {
-                $this->userInfo = CompanyModel::where('token', $this->token)->find();
-            }
-
+            $this->userInfo = UserModel::where('token', $this->token)->find();
             if (!$this->userInfo) {
                 $this->returnData['msg'] = '用户不存在或未登录';
                 $this->returnApiData();
@@ -86,7 +69,7 @@ class ApiController extends BaseController
 
     public function getUserInfo()
     {
-        return $this->userInfo->hidden(['salt', 'password'])->toArray();
+        return $this->userInfo->hidden(['password'])->toArray();
     }
 
     protected function isLogin()
@@ -97,8 +80,12 @@ class ApiController extends BaseController
     /**
      * 输出结果集并退出程序
      */
-    protected function returnApiData()
+    protected function returnApiData($msg = '')
     {
+        if ($msg !== '') {
+            $this->returnData['msg'] = $msg;
+        }
+
         $this->returnData['data'] = $this->aes->aesEncode(json_encode($this->returnData['data'], JSON_UNESCAPED_UNICODE));
         response($this->returnData, 200, [], 'json')->send();
         exit;
@@ -137,6 +124,21 @@ class ApiController extends BaseController
         $this->returnData['msg'] = 'success';
         $this->returnData['code'] = 1;
         return json($this->returnData);
+    }
+
+    public function upload()
+    {
+        $site_watermark_engine = SiteConfig::getByKeyword('site_watermark_engine');
+        $upload = (new Attachment())->upload('file', 'attachment', (bool)(int) $site_watermark_engine->value);
+
+        if (!$upload) {
+            $this->error('上传失败: 未找到文件');
+        }
+
+        $this->returnData['code'] = 1;
+        $this->returnData['data']['savePath'] = $upload['savePath'];
+        $this->returnData['msg'] = lang('Done');
+        $this->returnApiData();
     }
 
     public function __call($method, $args)

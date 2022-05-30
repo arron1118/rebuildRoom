@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
+use app\common\library\Attachment;
+use app\common\model\Config as SiteConfig;
 use think\Request;
 use app\common\controller\AdminController;
 use app\common\model\Config as ConfigModel;
@@ -23,8 +25,6 @@ class Config extends AdminController
      */
     public function index()
     {
-        $config = $this->model::select();
-        $this->view->assign('config', $config);
         return $this->view->fetch();
     }
 
@@ -83,7 +83,11 @@ class Config extends AdminController
         if ($request->isPost()) {
             $params = $request->param('param');
             foreach ($params as $key => $value) {
-                $this->model::where('keyword', $key)->update(['value' => $value]);
+                $data = ['value' => $value['value']];
+                if ($value['type'] === 'select') {
+                    $data = ['content' => $value['value']];
+                }
+                $this->model::where('keyword', $key)->update($data);
             }
             $this->returnData['code'] = 1;
             $this->returnData['data'] = $params;
@@ -102,5 +106,18 @@ class Config extends AdminController
     public function delete($id)
     {
         //
+    }
+
+    public function upload()
+    {
+        $upload = (new Attachment())->upload();
+
+        if (!$upload) {
+            $this->error('上传失败: 未找到文件');
+        }
+
+        $this->returnData['code'] = 1;
+        $this->returnData['data']['savePath'] = $upload['savePath'];
+        $this->success(lang('Done'));
     }
 }
