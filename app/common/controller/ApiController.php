@@ -86,7 +86,10 @@ class ApiController extends BaseController
             $this->returnData['msg'] = $msg;
         }
 
-        $this->returnData['data'] = $this->aes->aesEncode(json_encode($this->returnData['data'], JSON_UNESCAPED_UNICODE));
+        if ($this->returnData['data']) {
+            $this->returnData['data'] = $this->aes->aesEncode(json_encode($this->returnData['data'], JSON_UNESCAPED_UNICODE));
+        }
+
         response($this->returnData, 200, [], 'json')->send();
         exit;
     }
@@ -99,7 +102,16 @@ class ApiController extends BaseController
     protected function getRequestParams($param = 'params')
     {
         $data = $this->request->param($param);
-        return json_decode($this->aes->aesDecode($data), JSON_UNESCAPED_UNICODE);
+        if (!$data) {
+            $this->returnApiData('未提供正确的参数');
+        }
+
+        $decodeData = $this->aes->aesDecode($data);
+        if (!$decodeData) {
+            $this->returnApiData('无法正常解析参数');
+        }
+
+        return json_decode($decodeData, JSON_UNESCAPED_UNICODE);
     }
 
     /**
