@@ -114,4 +114,8 @@ abstract class BaseController
         return $v->failException(true)->check($data);
     }
 
+    public function getMenu()
+    {
+        return config('menu.' . $this->module);
+    }
 }

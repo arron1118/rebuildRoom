@@ -173,15 +173,15 @@
             }
 
             $.post('{:url("/index/login")}', params, function (res) {
-                console.log(res)
                 if (res.code) {
+                    options.icon = 6
                     options.time = 1000
                     layer.msg(res.msg, options, function () {
                         window.location = res.data.url;
                     });
                 } else {
                     $('input[name="__token__"]').val(res.data.token);
-                    layer.msg(res.msg);
+                    layer.msg(res.msg, options);
                 }
             });
 

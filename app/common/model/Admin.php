@@ -10,4 +10,13 @@ use think\Model;
  */
 class Admin extends Model
 {
+    public function getLoginTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
+    }
+
+    public function getLastLoginTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
+    }
 }
