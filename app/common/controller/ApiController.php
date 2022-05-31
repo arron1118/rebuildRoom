@@ -102,16 +102,15 @@ class ApiController extends BaseController
     protected function getRequestParams($param = 'params')
     {
         $data = $this->request->param($param);
-        if (!$data) {
-            $this->returnApiData('未提供正确的参数');
+//        if (!$data) {
+//            $this->returnApiData('未提供正确的参数');
+//        }
+
+        if ($data) {
+            return json_decode($this->aes->aesDecode($data), true);
         }
 
-        $decodeData = $this->aes->aesDecode($data);
-        if (!$decodeData) {
-            $this->returnApiData('无法正常解析参数');
-        }
-
-        return json_decode($decodeData, JSON_UNESCAPED_UNICODE);
+        return [];
     }
 
     /**

@@ -10,5 +10,13 @@ use think\Model;
  */
 class User extends Model
 {
-    //
+    public function getLoginTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
+    }
+
+    public function getLastLoginTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
+    }
 }

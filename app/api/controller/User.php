@@ -4,8 +4,10 @@ declare (strict_types = 1);
 namespace app\api\controller;
 
 use think\Request;
+use app\common\controller\ApiController;
+use app\common\model\User as UserModel;
 
-class User
+class User extends ApiController
 {
     /**
      * 显示资源列表
