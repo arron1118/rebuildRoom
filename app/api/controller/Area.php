@@ -9,6 +9,12 @@ use app\common\model\Area as AreaModel;
 
 class Area extends ApiController
 {
+    public function initialize()
+    {
+        parent::initialize();
+
+        $this->model = AreaModel::class;
+    }
     /**
      * 显示资源列表
      *
@@ -26,7 +32,7 @@ class Area extends ApiController
         }
 
         $this->returnData['total'] = $this->model::where($map)->count();
-        $this->returnData['data'] = $this->model::withCount(['building', 'house'])
+        $this->returnData['data'] = $this->model::field('id, title')->withCount(['building', 'house'])
             ->where($map)
             ->order('id desc')
             ->limit(($page - 1) * $limit, $limit)

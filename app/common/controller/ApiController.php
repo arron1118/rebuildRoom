@@ -12,20 +12,58 @@ use app\BaseController;
 
 class ApiController extends BaseController
 {
+    /**
+     * 无需登录的接口
+     * @var string[]
+     */
     protected $noNeedLogin = ['login', 'getAesEncodeData', 'getAesDecodeData', 'getSiteInfo'];
 
+    /**
+     * 用户信息
+     * @var null
+     */
     protected $userInfo = null;
 
+    /**
+     * 用户模型
+     * @var null
+     */
     protected $UserModel = null;
 
+    /**
+     * 当前模块的模型
+     * @var null
+     */
     protected $model = null;
 
+    /**
+     * 请求参数
+     * @var array
+     */
     protected $params = [];
 
+    /**
+     * api token
+     * @var null
+     */
     protected $token = null;
 
+    /**
+     * 加密/解密模型
+     * @var null
+     */
     protected $aes = null;
 
+    /**
+     * 是否加密传输
+     * @var bool
+     */
+    protected $needAes = false;
+
+    /**
+     * 接口返回数据
+     * @var array
+     */
     protected $returnData = [
         'code' => 0,
         'msg' => '未知错误',
@@ -45,25 +83,23 @@ class ApiController extends BaseController
         if (!in_array($action, $this->noNeedLogin, true)) {
             $this->returnData['code'] = 5003;
             if (!$this->token) {
-                $this->returnData['msg'] = '权限不足：未登录';
-                $this->returnApiData();
+                $this->returnApiData('权限不足：未登录');
             }
 
             $this->userInfo = UserModel::where('token', $this->token)->find();
             if (!$this->userInfo) {
-                $this->returnData['msg'] = '用户不存在或未登录';
-                $this->returnApiData();
+                $this->returnApiData('用户不存在或未登录');
             }
 
             if (!$this->userInfo->getData('status')) {
-                $this->returnData['msg'] = lang('Account is locked');
-                $this->returnApiData();
+                $this->returnApiData(lang('Account is locked'));
             }
 
             if ($this->userInfo->token_expire_time < time()) {
-                $this->returnData['msg'] = '登录过期，请重新登录';
-                $this->returnApiData();
+                $this->returnApiData('登录过期，请重新登录');
             }
+
+            $this->returnData['code'] = 1;
         }
     }
 
@@ -80,13 +116,13 @@ class ApiController extends BaseController
     /**
      * 输出结果集并退出程序
      */
-    protected function returnApiData($msg = '')
+    protected function returnApiData($msg = ''): void
     {
         if ($msg !== '') {
             $this->returnData['msg'] = $msg;
         }
 
-        if ($this->returnData['data']) {
+        if ($this->returnData['data'] && $this->needAes) {
             $this->returnData['data'] = $this->aes->aesEncode(json_encode($this->returnData['data'], JSON_UNESCAPED_UNICODE));
         }
 
@@ -101,16 +137,20 @@ class ApiController extends BaseController
      */
     protected function getRequestParams($param = 'params')
     {
-        $data = $this->request->param($param);
+        if ($this->needAes) {
+            $data = $this->request->param($param);
 //        if (!$data) {
 //            $this->returnApiData('未提供正确的参数');
 //        }
 
-        if ($data) {
-            return json_decode($this->aes->aesDecode($data), true);
+            if ($data) {
+                return json_decode($this->aes->aesDecode($data), true);
+            }
+
+            return [];
         }
 
-        return [];
+        return $this->request->param();
     }
 
     /**
@@ -140,21 +180,19 @@ class ApiController extends BaseController
     public function upload()
     {
         $site_watermark_engine = SiteConfig::getByKeyword('site_watermark_engine');
-        $upload = (new Attachment())->upload('file', 'attachment', (bool)(int) $site_watermark_engine->value);
+        $upload = (new Attachment())->upload('file', 'attachment', (bool) (int) $site_watermark_engine->value);
 
         if (!$upload) {
-            $this->error('上传失败: 未找到文件');
+            $this->returnApiData('上传失败: 未找到文件');
         }
 
         $this->returnData['code'] = 1;
         $this->returnData['data']['savePath'] = $upload['savePath'];
-        $this->returnData['msg'] = lang('Done');
-        $this->returnApiData();
+        $this->returnApiData(lang('Done'));
     }
 
     public function __call($method, $args)
     {
-        $this->returnData['msg'] = '错误的请求[方法不存在]：' . $method;
-        $this->returnApiData();
+        $this->returnApiData('错误的请求[方法不存在]：' . $method);
     }
 }
