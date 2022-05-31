@@ -58,7 +58,6 @@ class Admin extends AdminController
      */
     public function edit($id)
     {
-        //
     }
 
     /**
@@ -71,6 +70,44 @@ class Admin extends AdminController
     public function update(Request $request, $id)
     {
         //
+    }
+
+    public function profile()
+    {
+        return $this->view->fetch('user/profile');
+    }
+
+    public function resetPassword()
+    {
+        if ($this->request->isPost()) {
+            $old_password = trim($this->request->param('old_password'));
+            $new_password = trim($this->request->param('new_password'));
+            $confirm_password = trim($this->request->param('confirm_password'));
+            if (empty($old_password)) {
+                $this->error(lang('Please enter your old password'));
+            }
+            if (empty($new_password)) {
+                $this->error(lang('Please enter a new password'));
+            }
+            if (empty($confirm_password)) {
+                $this->error(lang('Please enter a confirmation password'));
+            }
+            if (!password_verify($old_password, $this->userInfo->password)) {
+                $this->error(lang('The old password entered is incorrect'));
+            }
+            if ($new_password !== $confirm_password) {
+                $this->error(lang('The confirmation password entered is incorrect'));
+            }
+            $this->userInfo->password = password_hash($confirm_password, PASSWORD_BCRYPT);
+            if ($this->userInfo->save()) {
+                $this->returnData['msg'] = lang('Password modification successful, please log in again');
+                $this->returnData['code'] = 1;
+            }
+
+            $this->success();
+        }
+
+        return $this->view->fetch('user/reset_password');
     }
 
     /**
