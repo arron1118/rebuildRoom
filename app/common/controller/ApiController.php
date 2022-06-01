@@ -144,13 +144,25 @@ class ApiController extends BaseController
 //        }
 
             if ($data) {
-                return json_decode($this->aes->aesDecode($data), true);
+                return $this->paramFilter(json_decode($this->aes->aesDecode($data), true));
             }
 
             return [];
         }
 
-        return $this->request->param();
+        return $this->paramFilter($this->request->param());
+    }
+
+    protected function paramFilter($param)
+    {
+        if (isset($param['page'])) {
+            $param['page'] = (int) $param['page'];
+        }
+        if (isset($param['limit'])) {
+            $param['limit'] = (int) $param['limit'];
+        }
+
+        return $param;
     }
 
     /**

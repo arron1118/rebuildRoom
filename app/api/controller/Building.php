@@ -38,7 +38,7 @@ class Building extends ApiController
         }
 
         $this->returnData['total'] = $this->model::where($map)->count();
-        $this->returnData['data'] = $this->model::withCount(['house'])
+        $this->returnData['data'] = $this->model::field('id, title, area_id, house_total, finish_total')
             ->where($map)
             ->order('id desc')
             ->limit(($page - 1) * $limit, $limit)

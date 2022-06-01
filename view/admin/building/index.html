@@ -135,20 +135,21 @@
          */
         table.on('toolbar(currentTableFilter)', function (obj) {
             if (obj.event === 'add') {  // 监听添加操作
+                let area = $('select[name=area_id]')
+                if (parseInt(area.val()) <= 0) {
+                    option.icon = 2
+                    layer.msg('请选择区域', option)
+                    return false
+                }
+
                 layer.prompt({ title: '添加' }, function (input, index) {
                     if (input === '') {
                         option.icon = 2
                         layer.msg('请输入名称', option);
                         return false;
                     }
-                    let area = $('select[name=area_id]')
                     let param = { title: input }
                     param[area.prop('name')] = area.val()
-                    if (parseInt(area.val()) <= 0) {
-                        option.icon = 2
-                        layer.msg('请选择区域', option)
-                        return false
-                    }
 
                     $.post('{:url("/building/save")}', param, function (res) {
                         if (res.code === 1) {
@@ -165,7 +166,6 @@
 
         let update = function (param) {
             $.post('{:url("/building/update")}', param, function (res) {
-                let option = {icon: 0};
                 if (res.code === 1) {
                     option.icon = 1
                 }
@@ -191,7 +191,6 @@
                     layer.confirm('确认删除数据？', function (index) {
                         $.post("{:url('/building/delete')}", { id: obj.data.id }, function (res) {
                             layer.close(index);
-                            let option = {icon: 0};
                             if (res.code === 1) {
                                 option.icon = 1
                                 reloadTable(form.val('searchForm'))

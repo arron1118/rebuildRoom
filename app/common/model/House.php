@@ -15,6 +15,11 @@ class House extends Model
         Building::where('id', $house->building_id)->inc('house_total')->update();
     }
 
+    public static function onAfterDelete($house): void
+    {
+        Building::where('id', $house->building_id)->dec('house_total')->update();
+    }
+
     public function investigation()
     {
         return $this->hasMany(Investigation::class);
