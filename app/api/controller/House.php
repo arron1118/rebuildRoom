@@ -45,7 +45,7 @@ class House extends ApiController
 
         $this->returnData['code'] = 1;
         $this->returnData['total'] = $this->model::where($map)->count();
-        $this->returnData['data'] = $this->model::field('id, title, create_time')->withCount(['investigation'])
+        $this->returnData['data'] = $this->model::field('id, title, area_id, building_id, investigation_times, investigation_times_one_status, investigation_times_two_status, investigation_times_three_status, create_time')->withCount(['investigation'])
             ->where($map)
             ->order('id desc')
             ->limit(($page - 1) * $limit, $limit)
@@ -103,9 +103,13 @@ class House extends ApiController
      */
     public function delete($id)
     {
-        $room = $this->model::find($id);
-        $room->delete();
-        $this->returnData['code'] = 1;
-        $this->returnApiData(lang('Done'));
+        if ($this->request->isPost()) {
+            $house = $this->model::find($id);
+            $house->delete();
+            $this->returnData['code'] = 1;
+            $this->returnApiData(lang('Done'));
+        }
+
+        $this->returnApiData();
     }
 }

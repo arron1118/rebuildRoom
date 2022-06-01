@@ -134,8 +134,8 @@ class House extends AdminController
     {
         if ($request->isPost()) {
             $params = $request->only(['title']);
-            $area = $this->model::find($id);
-            $area->save($params);
+            $house = $this->model::find($id);
+            $house->save($params);
             $this->returnData['code'] = 1;
             $this->success(lang('Done'));
         }
@@ -152,8 +152,8 @@ class House extends AdminController
     public function delete($id)
     {
         if ($this->request->isPost()) {
-            $room = $this->model::find($id);
-            $room->delete();
+            $house = $this->model::find($id);
+            $house->delete();
             $this->returnData['code'] = 1;
             $this->success(lang('Done'));
         }
