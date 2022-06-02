@@ -42,7 +42,12 @@ class Investigation extends ApiController
      */
     public function save(Request $request)
     {
-        //
+        if ($request->isPost()) {
+
+            $this->returnApiData(lang('Done'));
+        }
+
+        $this->returnApiData();
     }
 
     /**
