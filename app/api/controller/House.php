@@ -27,8 +27,9 @@ class House extends ApiController
         $limit = $this->params['limit'] ?? 10;
         $title = $this->params['title'] ?? '';
         $areaId = $this->params['area_id'] ?? 0;
-        $buildingId = $this->params['building_id'] ?? 0;
-        $investigation_times = $this->params['investigation_times'] ?? 1;
+        $buildingId = (int) ($this->params['building_id'] ?? 0);
+        $investigation_times = $this->params['investigation_times'] ?? null;
+        $investigation_status = $this->params['investigation_status'] ?? null;
         $map = [];
 
         if ($title) {
@@ -41,6 +42,25 @@ class House extends ApiController
 
         if ($buildingId) {
             $map[] = ['building_id', '=', $buildingId];
+        }
+
+        if (!is_null($investigation_times)) {
+            $map[] = ['investigation_times', '=', $investigation_times];
+            if (!is_null($investigation_status)) {
+                switch ($investigation_times) {
+                    case 2:
+                        $map[] = ['investigation_times_two_status', '=', $investigation_status];
+                        break;
+
+                    case 3:
+                        $map[] = ['investigation_times_three_status', '=', $investigation_status];
+                        break;
+
+                    default:
+                        $map[] = ['investigation_times_one_status', '=', $investigation_status];
+                        break;
+                }
+            }
         }
 
         $this->returnData['code'] = 1;
