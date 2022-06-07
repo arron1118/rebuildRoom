@@ -30,18 +30,22 @@ class House extends ApiController
         $buildingId = (int) ($this->params['building_id'] ?? 0);
         $investigation_times = $this->params['investigation_times'] ?? null;
         $investigation_status = $this->params['investigation_status'] ?? null;
-        $map = [];
+
+        if ((int) $areaId <= 0) {
+            $this->returnApiData('请提供项目ID: area_id');
+        }
+
+        if ($buildingId <= 0) {
+            $this->returnApiData('请提供房号ID: building_id');
+        }
+
+        $map = [
+            ['area_id', '=', $areaId],
+            ['building_id', '=', $buildingId],
+        ];
 
         if ($title) {
             $map[] = ['title', 'like', '%' . $title . '%'];
-        }
-
-        if ($areaId) {
-            $map[] = ['area_id', '=', $areaId];
-        }
-
-        if ($buildingId) {
-            $map[] = ['building_id', '=', $buildingId];
         }
 
         if (!is_null($investigation_times)) {
@@ -84,12 +88,19 @@ class House extends ApiController
     {
         if ($request->isPost()) {
             $params = $request->only(['title', 'area_id', 'building_id']);
+
+            if ((int) $params['area_id'] <= 0) {
+                $this->returnApiData('请提供项目ID: area_id');
+            }
+            $params['investigation_times'] = getInvestigationTimes($params['area_id']);
+            $params['user_id'] = $this->userInfo->id;
             (new $this->model)->save($params);
+
             $this->returnData['code'] = 1;
             $this->returnApiData(lang('Done'));
         }
 
-        $this->returnApiData();
+        $this->returnApiData('添加失败');
     }
 
     /**
@@ -100,7 +111,11 @@ class House extends ApiController
      */
     public function read($id)
     {
-        //
+        $this->returnData['data'] = $this->model::with(['investigation'])->findOrEmpty($id);
+        if ($this->returnData['data']->isEmpty()) {
+            $this->returnApiData(lang('No data was found'));
+        }
+        $this->returnApiData(lang('Done'));
     }
 
     /**
