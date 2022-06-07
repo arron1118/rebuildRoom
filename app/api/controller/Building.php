@@ -27,14 +27,17 @@ class Building extends ApiController
         $limit = $this->params['limit'] ?? 10;
         $title = $this->params['title'] ?? '';
         $areaId = $this->params['area_id'] ?? 0;
-        $map = [];
+
+        if ((int) $areaId <= 0) {
+            $this->returnApiData('请提供项目ID: area_id');
+        }
+
+        $map = [
+            ['area_id', '=', $areaId]
+        ];
 
         if ($title) {
             $map[] = ['title', 'like', '%' . $title . '%'];
-        }
-
-        if ($areaId) {
-            $map[] = ['area_id', '=', $areaId];
         }
 
         $this->returnData['total'] = $this->model::where($map)->count();
