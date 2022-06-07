@@ -10,5 +10,14 @@ use think\Model;
  */
 class Investigation extends Model
 {
-    //
+    public static function onBeforeInsert($Investigation)
+    {
+    }
+
+    public function getImagesAttr($value)
+    {
+        if ($value) {
+            return explode(',', $value);
+        }
+    }
 }

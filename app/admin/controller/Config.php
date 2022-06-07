@@ -110,7 +110,7 @@ class Config extends AdminController
 
     public function upload()
     {
-        $upload = (new Attachment())->upload();
+        $upload = (new Attachment())->upload(request()->file('file'));
 
         if (!$upload) {
             $this->error('上传失败: 未找到文件');

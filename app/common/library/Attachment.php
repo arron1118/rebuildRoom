@@ -20,10 +20,9 @@ class Attachment
      * @param false $watermark
      * @return false|string[]|void
      */
-    public function upload(string $fileName = 'file', string $savePath = 'attachment', bool $watermark = false)
+    public function upload($file, string $savePath = 'attachment', bool $watermark = false)
     {
         try {
-            $file = request()->file($fileName);
             if (!$file) {
                 return false;
             }
