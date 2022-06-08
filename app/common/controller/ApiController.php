@@ -70,6 +70,13 @@ class ApiController extends BaseController
         'data' => [],
     ];
 
+    /**
+     * 初始化数据
+     *
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
     protected function initialize()
     {
         parent::initialize();
@@ -115,6 +122,8 @@ class ApiController extends BaseController
 
     /**
      * 输出结果集并退出程序
+     *
+     * @param string $msg
      */
     protected function returnApiData($msg = ''): void
     {
@@ -132,6 +141,7 @@ class ApiController extends BaseController
 
     /**
      * 获取加密的请求数据
+     *
      * @param string $param
      * @return mixed
      */
@@ -153,6 +163,12 @@ class ApiController extends BaseController
         return $this->paramFilter($this->request->param());
     }
 
+    /**
+     * 参数过滤
+     *
+     * @param $param
+     * @return mixed
+     */
     protected function paramFilter($param)
     {
         if (isset($param['page'])) {
@@ -178,6 +194,7 @@ class ApiController extends BaseController
 
     /**
      * 获取解密后的请求数据
+     *
      * @param string $param
      * @return \think\response\Json
      */
@@ -189,20 +206,35 @@ class ApiController extends BaseController
         return json($this->returnData);
     }
 
-    public function upload()
+    /**
+     * 上传
+     *
+     * @param string $fileName
+     * @return array
+     */
+    public function upload($fileName = 'file')
     {
         $site_watermark_engine = SiteConfig::getByKeyword('site_watermark_engine');
-        $upload = (new Attachment())->upload('file', 'attachment', (bool) (int) $site_watermark_engine->value);
 
-        if (!$upload) {
-            $this->returnApiData('上传失败: 未找到文件');
+        $files = request()->file($fileName);
+        $saveName = [];
+        foreach ($files as $file) {
+            $upload = (new Attachment())->upload($file, 'attachment', (bool) (int) $site_watermark_engine->value);
+
+            if (!$upload) {
+                $this->returnApiData('上传失败: 未找到文件');
+            }
+
+            $saveName[] = $upload['savePath'];
         }
 
-        $this->returnData['code'] = 1;
-        $this->returnData['data']['savePath'] = $upload['savePath'];
-        $this->returnApiData(lang('Done'));
+        return $saveName;
     }
 
+    /**
+     * @param $method
+     * @param $args
+     */
     public function __call($method, $args)
     {
         $this->returnApiData('错误的请求[方法不存在]：' . $method);

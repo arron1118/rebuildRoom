@@ -60,15 +60,30 @@ class Investigation extends ApiController
     public function save(Request $request)
     {
         if ($request->isPost()) {
-            $params = $request->only(['title', 'area_id', 'building_id', 'type', 'crack_area', 'crack_sum', 'images', 'image_time', 'reason', 'description']);
+            $params = $request->only(['title', 'area_id', 'building_id', 'house_id', 'type', 'crack_area', 'crack_sum', 'images', 'image_time', 'reason', 'description']);
             $params['investigation_times'] = getInvestigationTimes($params['area_id']);
             $params['user_id'] = $this->userInfo->id;
 
             if (isset($params['title']) && $params['title'] !== '') {
-                (new \app\common\model\House)->allowField(['area_id', 'building_id', 'investigation_times', 'user_id', 'title'])->save($params);
+                $house = new \app\common\model\House;
+                $house->investigation_times = $params['investigation_times'];
+                $house->area_id = $params['area_id'];
+                $house->building_id = $params['building_id'];
+                $house->user_id = $params['user_id'];
+                $house->title = $params['title'];
+                $house->save();
+
+                $params['house_id'] = $house->id;
+            }
+
+            $params['images'] = implode(',', $this->upload('images'));
+
+            if (!isset($params['image_time'])) {
+                $params['image_time'] = time();
             }
 
             (new $this->model)->save($params);
+            $this->returnData['data'] = $params;
             $this->returnApiData(lang('Done'));
         }
 
