@@ -218,14 +218,16 @@ class ApiController extends BaseController
 
         $files = request()->file($fileName);
         $saveName = [];
-        foreach ($files as $file) {
-            $upload = (new Attachment())->upload($file, 'attachment', (bool) (int) $site_watermark_engine->value);
+        if ($files) {
+            foreach ($files as $file) {
+                $upload = (new Attachment())->upload($file, 'attachment', (bool) (int) $site_watermark_engine->value);
 
-            if (!$upload) {
-                $this->returnApiData('上传失败: 未找到文件');
+                if (!$upload) {
+                    $this->returnApiData('上传失败: 未找到文件');
+                }
+
+                $saveName[] = $upload['savePath'];
             }
-
-            $saveName[] = $upload['savePath'];
         }
 
         return $saveName;
