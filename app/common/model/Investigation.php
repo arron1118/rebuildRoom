@@ -16,8 +16,11 @@ class Investigation extends Model
 
     public function getImagesAttr($value)
     {
-        if ($value) {
-            return explode(',', $value);
-        }
+        return $value ? explode(',', $value) : [];
+    }
+
+    public function getImageTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
     }
 }
