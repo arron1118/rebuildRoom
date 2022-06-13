@@ -44,9 +44,23 @@ class Investigation extends ApiController
             ['type', '=', $type],
         ];
 
+        $fields = 'id, house_id, type, investigation_times, create_time,';
+        switch ((int) $type) {
+            case 1:
+                $fields .= 'crack_area, crack_sum, crack_images, crack_description, crack_image_time';
+                break;
+
+            case 2:
+                $fields .= 'refuse_images, refuse_image_time, refuse_reason';
+                break;
+
+            default:
+                $fields .= 'images, image_time, description';
+                break;
+        }
 
         $this->returnData['total'] = $this->model::where($map)->count();
-        $this->returnData['data'] = $this->model::field('id, house_id, type, crack_area, crack_sum, images, image_time, reason, description, investigation_times, create_time')
+        $this->returnData['data'] = $this->model::field($fields)
             ->where($map)
             ->order('id desc')
             ->limit(($page - 1) * $limit, $limit)
@@ -64,9 +78,10 @@ class Investigation extends ApiController
     public function save(Request $request)
     {
         if ($request->isPost()) {
-            $params = $request->only(['title', 'area_id', 'building_id', 'house_id', 'type', 'crack_area', 'crack_sum', 'images', 'image_time', 'reason', 'description']);
+            $params = $request->only(['title', 'area_id', 'building_id', 'house_id', 'type', 'images', 'image_time', 'description', 'crack_area', 'crack_sum', 'crack_images', 'crack_description', 'crack_image_time', 'refuse_images', 'refuse_image_time', 'refuse_reason']);
             $params['investigation_times'] = getInvestigationTimes($params['area_id']);
             $params['user_id'] = $this->userInfo->id;
+            $params['type'] = (int) $params['type'];
 
             if (isset($params['title']) && $params['title'] !== '') {
                 $house = new House();
@@ -80,9 +95,13 @@ class Investigation extends ApiController
                 $params['house_id'] = $house->id;
             }
 
-            if ((int) $params['type'] !== 3) {
+            if (!$params['house_id']) {
+                $this->returnApiData('未找到套房ID');
+            }
+
+            if ($params['type'] !== 3) {
                 $house = House::find($params['house_id']);
-                $type = (int) $params['type'] === 2 ? 2 : 1;
+                $type = $params['type'] === 2 ? 2 : 1;
                 switch ($params['investigation_times']) {
                     case 2:
                         $house->investigation_times_two_status = $type;
@@ -98,9 +117,27 @@ class Investigation extends ApiController
                 }
                 $house->save();
 
-                $params['images'] = implode(',', $this->upload('images'));
-                if ($params['images']) {
-                    $params['image_time'] = isset($params['image_time']) ? strtotime($params['image_time']) : time();
+                switch ($params['type']) {
+                    case 1:
+                        $params['crack_images'] = implode(',', $this->upload('crack_images'));
+                        if ($params['crack_images']) {
+                            $params['crack_image_time'] = isset($params['crack_image_time']) ? strtotime($params['crack_image_time']) : time();
+                        }
+                        break;
+
+                    case 2:
+                        $params['refuse_images'] = implode(',', $this->upload('refuse_images'));
+                        if ($params['refuse_images']) {
+                            $params['refuse_image_time'] = isset($params['refuse_image_time']) ? strtotime($params['refuse_image_time']) : time();
+                        }
+                        break;
+
+                    default:
+                        $params['images'] = implode(',', $this->upload('images'));
+                        if ($params['images']) {
+                            $params['image_time'] = isset($params['image_time']) ? strtotime($params['image_time']) : time();
+                        }
+                        break;
                 }
 
                 (new $this->model)->save($params);

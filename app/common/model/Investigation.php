@@ -23,4 +23,24 @@ class Investigation extends Model
     {
         return $value ? date($this->getDateFormat(), $value) : '-';
     }
+
+    public function getCrackImagesAttr($value)
+    {
+        return $value ? explode(',', $value) : [];
+    }
+
+    public function getCrackImageTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
+    }
+
+    public function getRefuseImagesAttr($value)
+    {
+        return $value ? explode(',', $value) : [];
+    }
+
+    public function getRefuseImageTimeAttr($value)
+    {
+        return $value ? date($this->getDateFormat(), $value) : '-';
+    }
 }
