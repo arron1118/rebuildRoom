@@ -28,7 +28,6 @@ class House extends ApiController
         $title = $this->params['title'] ?? '';
         $areaId = $this->params['area_id'] ?? 0;
         $buildingId = (int) ($this->params['building_id'] ?? 0);
-        $investigation_times = $this->params['investigation_times'] ?? null;
         $investigation_status = $this->params['investigation_status'] ?? null;
 
         if ((int) $areaId <= 0) {
@@ -38,38 +37,47 @@ class House extends ApiController
         if ($buildingId <= 0) {
             $this->returnApiData('请提供房号ID: building_id');
         }
+        $investigation_times = getInvestigationTimes($areaId);
 
         $map = [
             ['area_id', '=', $areaId],
             ['building_id', '=', $buildingId],
+            ['investigation_times', '=', $investigation_times]
         ];
 
         if ($title) {
             $map[] = ['title', 'like', '%' . $title . '%'];
         }
 
-        if (!is_null($investigation_times)) {
-            $map[] = ['investigation_times', '=', $investigation_times];
-            if (!is_null($investigation_status)) {
-                switch ($investigation_times) {
-                    case 2:
-                        $map[] = ['investigation_times_two_status', '=', $investigation_status];
-                        break;
-
-                    case 3:
-                        $map[] = ['investigation_times_three_status', '=', $investigation_status];
-                        break;
-
-                    default:
-                        $map[] = ['investigation_times_one_status', '=', $investigation_status];
-                        break;
+        $finish_map = [];
+        switch ($investigation_times) {
+            case 2:
+                if (!is_null($investigation_status)) {
+                    $map[] = ['investigation_times_two_status', '=', $investigation_status];
                 }
-            }
+                $finish_map[] = ['investigation_times_two_status', '=', 1];
+                break;
+
+            case 3:
+                if (!is_null($investigation_status)) {
+                    $map[] = ['investigation_times_three_status', '=', $investigation_status];
+                }
+                $finish_map[] = ['investigation_times_three_status', '=', 1];
+                break;
+
+            default:
+                if (!is_null($investigation_status)) {
+                    $map[] = ['investigation_times_one_status', '=', $investigation_status];
+                }
+                $finish_map[] = ['investigation_times_one_status', '=', 1];
+                break;
         }
 
         $this->returnData['code'] = 1;
         $this->returnData['total'] = $this->model::where($map)->count();
-        $this->returnData['data'] = $this->model::field('id, title, area_id, building_id, investigation_times, investigation_times_one_status, investigation_times_two_status, investigation_times_three_status, create_time')->withCount(['investigation'])
+        $this->returnData['finish_total'] = $this->model::where($finish_map)->count();
+        $this->returnData['data'] = $this->model::field('id, title, area_id, building_id, investigation_times, investigation_times_one_status, investigation_times_two_status, investigation_times_three_status, create_time')
+            ->withCount(['investigation'])
             ->where($map)
             ->order('id desc')
             ->limit(($page - 1) * $limit, $limit)

@@ -52,7 +52,16 @@ class House extends AdminController
             }
 
             $this->returnData['total'] = $this->model::where($map)->count();
-            $this->returnData['data'] = $this->model::withCount(['investigation'])
+            $this->returnData['data'] = $this->model::withCount(['investigation' => function ($query, &$alias) {
+                $query->where('investigation_times', 1);
+                $alias = 'investigation_times_one_count';
+            }])->withCount(['investigation' => function ($query, &$alias) {
+                $query->where('investigation_times', 2);
+                $alias = 'investigation_times_two_count';
+            }])->withCount(['investigation' => function ($query, &$alias) {
+                $query->where('investigation_times', 3);
+                $alias = 'investigation_times_three_count';
+            }])
                 ->with(['building', 'area'])
                 ->hidden(['building', 'area'])
                 ->where($map)

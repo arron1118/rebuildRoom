@@ -38,9 +38,11 @@ class Investigation extends ApiController
             $this->returnApiData('请提供项目ID: area_id');
         }
 
+        $investigation_times = getInvestigationTimes($areaId);
+
         $map = [
             ['house_id', '=', $house_id],
-            ['investigation_times', '=', getInvestigationTimes($areaId)],
+            ['investigation_times', '=', $investigation_times],
             ['type', '=', $type],
         ];
 
@@ -59,6 +61,7 @@ class Investigation extends ApiController
                 break;
         }
 
+        $this->returnData['code'] = 1;
         $this->returnData['total'] = $this->model::where($map)->count();
         $this->returnData['data'] = $this->model::field($fields)
             ->where($map)

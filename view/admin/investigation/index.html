@@ -61,21 +61,39 @@
                 <th lay-data="{field: 'title', title: '名称', edit: 'text'}"></th>
                 <th lay-data="{field: 'building_title', title: '所属楼宇'}"></th>
                 <th lay-data="{field: 'area_title', title: '所属区域'}"></th>
-                <th lay-data="{field: 'investigation_times_one', title: '一轮排查', align: 'center', event: 'showOneData', templet: '#investigation_times_one'}"></th>
-                <th lay-data="{field: 'investigation_times_two', title: '二轮排查', align: 'center', event: 'showTwoData', templet: '#investigation_times_two'}"></th>
-                <th lay-data="{field: 'investigation_times_three', title: '三轮排查', align: 'center', event: 'showThreeData', templet: '#investigation_times_three'}"></th>
+                <th lay-data="{field: 'investigation_times_one', title: '一轮排查', align: 'center', templet: '#investigation_times_one'}"></th>
+                <th lay-data="{field: 'investigation_times_two', title: '二轮排查', align: 'center', templet: '#investigation_times_two'}"></th>
+                <th lay-data="{field: 'investigation_times_three', title: '三轮排查', align: 'center', templet: '#investigation_times_three'}"></th>
                 <th lay-data="{title: '操作', width: 150, toolbar: '#currentTableBar', align: 'center', fixed: 'right'}"></th>
             </tr>
             </thead>
         </table>
         <script type="text/html" id="investigation_times_one">
-            <a href="javascript:;" data-id="{{d.id}}" title="共{{ d.investigation_times_one_count }}条数据">详情({{ d.investigation_times_one_count }})</a>
+            {{# if(d.investigation_times_one === 1) { }}
+            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter" checked>
+            {{# } else { }}
+            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } }}
         </script>
         <script type="text/html" id="investigation_times_two">
-            <a href="javascript:;" data-id="{{d.id}}" title="共{{ d.investigation_times_two_count }}条数据">详情({{ d.investigation_times_two_count }})</a>
+            {{# if(d.investigation_times_two === 1) { }}
+            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter" checked>
+            {{# } else { }}
+            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } }}
         </script>
         <script type="text/html" id="investigation_times_three">
-            <a href="javascript:;" data-id="{{d.id}}" title="共{{ d.investigation_times_three_count }}条数据">详情({{ d.investigation_times_three_count }})</a>
+            {{# if(d.investigation_times_three === 1) { }}
+            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter" checked>
+            {{# } else { }}
+            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } }}
         </script>
         <script type="text/html" id="currentTableBar">
 <!--            <a class="layui-btn layui-btn-xs data-count-edit" lay-event="edit" title="编辑">-->
@@ -244,7 +262,6 @@
         });
 
         table.on('tool(currentTableFilter)', function (obj) {
-            console.log(obj)
             switch (obj.event) {
                 case 'delete':
                     layer.confirm('确认删除数据？', function (index) {
@@ -258,27 +275,6 @@
                             layer.msg(res.msg, option)
                         })
                     });
-                    break;
-
-                case 'showOneData':
-                    let index = layer.open({
-                        title: '数据列表',
-                        type: 2,
-                        shade: 0.2,
-                        maxmin: true,
-                        shadeClose: true,
-                        anim: 2,
-                        area: ['100%', '100%'],
-                        content: '{:url("/Investigation/index")}',
-                    });
-                    break;
-
-                case 'showTwoData':
-                    layer.msg('showTwoData')
-                    break;
-
-                case 'showThreeData':
-                    layer.msg('showThreeData');
                     break;
             }
         });
