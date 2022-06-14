@@ -5,9 +5,17 @@ namespace app\admin\controller;
 
 use think\Request;
 use app\common\controller\AdminController;
+use app\common\model\Investigation as InvestigationModel;
 
 class Investigation extends AdminController
 {
+    public function initialize()
+    {
+        parent::initialize();
+
+        $this->model = InvestigationModel::class;
+    }
+
     /**
      * 显示资源列表
      *
@@ -15,6 +23,25 @@ class Investigation extends AdminController
      */
     public function index()
     {
+        $area_id = $this->request->param('area_id');
+        $house_id = $this->request->param('house_id');
+        $type = $this->request->param('type', 1);
+        if ($this->request->isAjax()) {
+            $investigation_times = getInvestigationTimes($area_id);
+            $this->returnData['data'] = $this->model::where([
+                'investigation_times' => $investigation_times,
+                'house_id' => $house_id,
+                ])->select();
+            $this->returnData['code'] = 1;
+            $this->success();
+        }
+
+        $this->view->assign([
+            'type' => $type,
+            'area_id' => $area_id,
+            'house_id' => $house_id,
+            'typeList' => (new $this->model)->getTypeList()
+        ]);
         return $this->view->fetch();
     }
 

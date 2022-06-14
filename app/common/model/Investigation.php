@@ -14,6 +14,11 @@ class Investigation extends Model
     {
     }
 
+    public function getTypeList()
+    {
+        return ['现场', '裂缝', '无法进入'];
+    }
+
     public function getImagesAttr($value)
     {
         return $value ? explode(',', $value) : [];

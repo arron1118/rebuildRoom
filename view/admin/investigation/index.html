@@ -4,106 +4,44 @@
 {/block}
 
 {block name='body'}
-<div class="container-fluid">
-    <div class="row mb-3 shadow-sm bg-white rounded">
-        <div class="col pt-3">
-            <form class="layui-form layui-form-pane" lay-filter="searchForm" action="">
-                <div class="layui-form-item">
-                    <div class="layui-inline">
-                        <label class="layui-form-label">区域</label>
-                        <div class="layui-input-inline">
-                            <select name="area_id" lay-filter="areaFilter">
-                                <option value="0">全部</option>
-                                {foreach $areaList as $key => $val}
-                                <option value="{$val.id}">{$val.title}</option>
-                                {/foreach}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-inline">
-                        <label class="layui-form-label">楼宇</label>
-                        <div class="layui-input-inline">
-                            <select name="building_id" lay-filter="buildingFilter">
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-inline">
-                        <label class="layui-form-label">名称</label>
-                        <div class="layui-input-inline">
-                            <input type="text" name="title" autocomplete="off" class="layui-input">
-                        </div>
-                    </div>
-                    <div class="layui-inline">
-                        <button type="submit" class="layui-btn layui-btn-normal" lay-submit
-                                lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索
-                        </button>
-                    </div>
-                    <div class="layui-inline">
-                        <button type="reset" class="layui-btn layui-btn-primary"><i class="fa fa-refresh"></i> 重 置
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 <div class="layuimini-container">
     <div class="layuimini-main">
-        <script type="text/html" id="toolbarDemo">
-            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i
-                    class="fa fa-plus"></i> 添加
-            </button>
-        </script>
+        <form class="layui-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">筛选</label>
+                <div class="layui-input-inline">
+                    <select name="type" lay-filter="typeFilter">
+                        {foreach $typeList as $key => $val}
+                        <option value="{$key}" {if ($type === $key)}selected{/if}>{$val}</option>
+                        {/foreach}
+                    </select>
+                    {$type}
+                </div>
+            </div>
+        </form>
         <table class="layui-table" id="currentTableId" lay-filter="currentTableFilter" lay-even lay-data="">
             <thead>
             <tr>
-                <th lay-data="{field: 'id', title: '编号', width: 100}"></th>
-                <th lay-data="{field: 'title', title: '名称', edit: 'text'}"></th>
-                <th lay-data="{field: 'building_title', title: '所属楼宇'}"></th>
-                <th lay-data="{field: 'area_title', title: '所属区域'}"></th>
-                <th lay-data="{field: 'investigation_times_one', title: '一轮排查', align: 'center', templet: '#investigation_times_one'}"></th>
-                <th lay-data="{field: 'investigation_times_two', title: '二轮排查', align: 'center', templet: '#investigation_times_two'}"></th>
-                <th lay-data="{field: 'investigation_times_three', title: '三轮排查', align: 'center', templet: '#investigation_times_three'}"></th>
-                <th lay-data="{title: '操作', width: 150, toolbar: '#currentTableBar', align: 'center', fixed: 'right'}"></th>
+                <th lay-data="{field: 'id', title: '编号',}"></th>
+                {if ($type === 0)}
+                <th lay-data="{field: 'images', title: '房间图片', edit: 'text'}"></th>
+                <th lay-data="{field: 'image_time', title: '拍照时间'}"></th>
+                <th lay-data="{field: 'description', title: '描述'}"></th>
+                {elseif ($type === 1) /}
+                <th lay-data="{field: 'crack_area', title: '裂缝区域'}"></th>
+                <th lay-data="{field: 'crack_sum', title: '裂缝数量'}"></th>
+                <th lay-data="{field: 'crack_images', title: '裂缝图片'}"></th>
+                <th lay-data="{field: 'crack_image_time', title: '拍照时间'}"></th>
+                <th lay-data="{field: 'crack_description', title: '裂缝描述'}"></th>
+                {elseif ($type === 2) /}
+                <th lay-data="{field: 'refuse_images', title: '无法进入图片'}"></th>
+                <th lay-data="{field: 'refuse_image_time', title: '拍照时间'}"></th>
+                <th lay-data="{field: 'refuse_reason', title: '原因'}"></th>
+                {/if}
+                <th lay-data="{field: 'create_time', title: '创建时间'}"></th>
             </tr>
             </thead>
         </table>
-        <script type="text/html" id="investigation_times_one">
-            {{# if(d.investigation_times_one === 1) { }}
-            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter" checked>
-            {{# } else { }}
-            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter">
-            {{# } }}
-        </script>
-        <script type="text/html" id="investigation_times_two">
-            {{# if(d.investigation_times_two === 1) { }}
-            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter" checked>
-            {{# } else { }}
-            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter">
-            {{# } }}
-        </script>
-        <script type="text/html" id="investigation_times_three">
-            {{# if(d.investigation_times_three === 1) { }}
-            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter" checked>
-            {{# } else { }}
-            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter">
-            {{# } }}
-        </script>
-        <script type="text/html" id="currentTableBar">
-<!--            <a class="layui-btn layui-btn-xs data-count-edit" lay-event="edit" title="编辑">-->
-<!--                <i class="fa fa-user-edit"></i>-->
-<!--            </a>-->
-            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete" title="删除">
-                <i class="fa fa-trash-can"></i>
-            </a>
-        </script>
-
     </div>
 </div>
 {/block}
@@ -118,15 +56,10 @@
 
         let option = { icon: 0 };
 
-        table.init('currentTableFilter', {
-            url: '{:url("/house/getHouseList")}',
+        let tableOptions = {
+            url: '{:url("/investigation/index", ["area_id" => $area_id, "house_id" => $house_id])}',
             id: 'currentTable',
-            toolbar: '#toolbarDemo',
-            defaultToolbar: ['filter', 'exports', 'print', {
-                title: '提示',
-                layEvent: 'LAYTABLE_TIPS',
-                icon: 'layui-icon-tips'
-            }],
+            title: '排查表',
             //异步请求，格式化数据
             parseData: function (res) {
                 return {
@@ -142,7 +75,8 @@
             },
             skin: 'line',
             even: true,
-        })
+        }
+        table.init('currentTableFilter', tableOptions)
 
         let reloadTable = function (params = {}) {
             //执行搜索重载
@@ -153,133 +87,12 @@
                 where: params
             }, false);
         }
-        // 监听搜索操作
-        form.on('submit(data-search-btn)', function (data) {
-            //执行搜索重载
-            reloadTable(data.field)
 
-            return false
-        });
-        form.on('select(areaFilter)', function (data) {
-            $.post('{:url("/house/getBuildingList")}', { id: data.value }, function (res) {
-                if (res.code === 1) {
-                    let html = `<option value='0'>全部楼房</option>`
-                    $.each(res.data, (index, item) => {
-                        html += `<option value='${item.id}'>${item.title}</option>`
-                    })
-                    $('select[lay-filter="buildingFilter"]').html(html)
-
-                    form.render('select')
-                }
-            })
-
-            reloadTable(Object.assign({}, form.val('searchForm'), { area_id: data.value }))
+        form.on('select(typeFilter)', function (data) {
+            console.log(data)
+            tableOptions.toolbar = true
+            reloadTable({ type: data.value })
         })
-        form.on('select(buildingFilter)', function (data) {
-            let params = [];
-            params[data.elem.name] = data.value
-            params = Object.assign({}, form.val('searchForm'), params)
-            reloadTable(params);
-        })
-        $('button[type="reset"]').on('click', function () {
-            reloadTable({})
-        })
-
-        /**
-         * toolbar监听事件
-         */
-        table.on('toolbar(currentTableFilter)', function (obj) {
-            if (obj.event === 'add') {  // 监听添加操作
-                let area = $('select[lay-filter="areaFilter"]')
-                let building = $('select[lay-filter="buildingFilter"]')
-
-                if (parseInt(area.val()) <= 0) {
-                    option.icon = 2
-                    layer.msg('请选择区域', option)
-                    return false
-                }
-
-                if (parseInt(building.val()) <= 0) {
-                    option.icon = 2
-                    layer.msg('请选择楼房', option)
-                    return false
-                }
-
-                layer.prompt({ title: '添加' }, function (input, index) {
-                    if (input === '') {
-                        option.icon = 2
-                        layer.msg('请输入名称', option);
-                        return false;
-                    }
-                    let param = { title: input }
-                    param[area.prop('name')] = area.val()
-                    param[building.prop('name')] = building.val()
-
-                    $.post('{:url("/house/save")}', param, function (res) {
-                        if (res.code === 1) {
-                            option.icon = 1
-                            layer.close(index)
-                            reloadTable(form.val('searchForm'))
-                        }
-
-                        layer.msg(res.msg, option)
-                    })
-                });
-            }
-        });
-
-        let update = function (param) {
-            $.post('{:url("/house/update")}', param, function (res) {
-                if (res.code === 1) {
-                    option.icon = 1
-                }
-
-                layer.msg(res.msg, option)
-            })
-        }
-        form.on('switch(statusFilter)', function (obj) {
-            let status = obj.elem.checked ? 1 : 0;
-            let params = {id: obj.value, status: status};
-            if (!status) {
-                parent.layer.confirm('禁止后，该账号下的所有拨号账号将无法正常使用', {icon: 3, title: '提示'}, function (index) {
-                    update(params)
-                    parent.layer.close(index)
-                })
-            } else {
-                update(params)
-            }
-        })
-
-        // 单元格编辑
-        table.on('edit(currentTableFilter)', function (obj) {
-            $.post('{:url("/house/update")}', obj.data, function (res) {
-                if (res.code === 1) {
-                    option.icon = 1
-                }
-
-                layer.msg(res.msg, option)
-            })
-        });
-
-        table.on('tool(currentTableFilter)', function (obj) {
-            switch (obj.event) {
-                case 'delete':
-                    layer.confirm('确认删除数据？', function (index) {
-                        $.post("{:url('/house/delete')}", { id: obj.data.id }, function (res) {
-                            layer.close(index);
-                            if (res.code === 1) {
-                                option.icon = 1
-                                reloadTable(form.val('searchForm'))
-                            }
-
-                            layer.msg(res.msg, option)
-                        })
-                    });
-                    break;
-            }
-        });
-
-
     })
 </script>
 {/block}

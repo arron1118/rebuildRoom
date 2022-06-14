@@ -32,6 +32,8 @@ class Building extends ApiController
             $this->returnApiData('请提供项目ID: area_id');
         }
 
+        $investigation_times = getInvestigationTimes($areaId);
+
         $map = [
             ['area_id', '=', $areaId]
         ];
@@ -41,7 +43,24 @@ class Building extends ApiController
         }
 
         $this->returnData['total'] = $this->model::where($map)->count();
-        $this->returnData['data'] = $this->model::field('id, title, area_id, house_total, finish_total')
+        $this->returnData['data'] = $this->model::field('id, title, area_id, house_total')
+            ->withCount(['house' => function ($query, &$alias) use ($investigation_times) {
+                switch ($investigation_times) {
+                    case 2:
+                        $query->where('investigation_times_two_status', 1);
+                        break;
+
+                    case 3:
+                        $query->where('investigation_times_three_status', 1);
+                        break;
+
+                    default:
+                        $query->where('investigation_times_one_status', 1);
+                        break;
+                }
+
+                $alias = 'finish_total';
+            }])
             ->where($map)
             ->order('id desc')
             ->limit(($page - 1) * $limit, $limit)

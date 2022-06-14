@@ -244,7 +244,6 @@
         });
 
         table.on('tool(currentTableFilter)', function (obj) {
-            console.log(obj)
             switch (obj.event) {
                 case 'delete':
                     layer.confirm('确认删除数据？', function (index) {
@@ -269,7 +268,7 @@
                         shadeClose: true,
                         anim: 2,
                         area: ['100%', '100%'],
-                        content: '{:url("/Investigation/index")}',
+                        content: '{:url("/Investigation/index")}?area_id=' + obj.data.area_id + '&house_id=' + obj.data.id,
                     });
                     break;
 

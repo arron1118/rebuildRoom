@@ -119,10 +119,14 @@ class House extends ApiController
      */
     public function read($id)
     {
+        if (!$id) {
+            $this->returnApiData('未提供正确的id');
+        }
         $this->returnData['data'] = $this->model::with(['investigation'])->findOrEmpty($id);
         if ($this->returnData['data']->isEmpty()) {
             $this->returnApiData(lang('No data was found'));
         }
+        $this->returnData['code'] = 1;
         $this->returnApiData(lang('Done'));
     }
 
