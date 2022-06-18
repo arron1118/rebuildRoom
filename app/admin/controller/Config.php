@@ -91,6 +91,7 @@ class Config extends AdminController
             }
             $this->returnData['code'] = 1;
             $this->returnData['data'] = $params;
+            $this->returnData['param'] = $request->param();
             $this->success(lang('Done'));
         }
 

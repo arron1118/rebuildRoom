@@ -113,6 +113,14 @@ class Area extends AdminController
         if ($request->isPost()) {
             $params = $request->only(['title', 'investigation_times_one', 'investigation_times_two', 'investigation_times_three']);
             $area = $this->model::find($id);
+            if (isset($params['investigation_times_two']) && (int) $params['investigation_times_two'] === 1) {
+                $params['investigation_times_one'] = 2;
+            }
+
+            if (isset($params['investigation_times_three']) && (int) $params['investigation_times_three'] === 1) {
+                $params['investigation_times_two'] = 2;
+            }
+
             $area->save($params);
             $this->returnData['code'] = 1;
             $this->success(lang('Done'));

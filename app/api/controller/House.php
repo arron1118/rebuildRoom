@@ -39,7 +39,7 @@ class House extends ApiController
         }
         $investigation_times = getInvestigationTimes($areaId);
 
-        $map = [
+        $map = $finish_map = [
             ['area_id', '=', $areaId],
             ['building_id', '=', $buildingId],
             ['investigation_times', '=', $investigation_times]
@@ -49,7 +49,6 @@ class House extends ApiController
             $map[] = ['title', 'like', '%' . $title . '%'];
         }
 
-        $finish_map = [];
         switch ($investigation_times) {
             case 2:
                 if (!is_null($investigation_status)) {
@@ -105,6 +104,7 @@ class House extends ApiController
             (new $this->model)->save($params);
 
             $this->returnData['code'] = 1;
+            $this->returnData['param'] = $request->param();
             $this->returnApiData(lang('Done'));
         }
 

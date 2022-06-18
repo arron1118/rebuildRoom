@@ -23,26 +23,33 @@ class Investigation extends AdminController
      */
     public function index()
     {
-        $area_id = $this->request->param('area_id');
         $house_id = $this->request->param('house_id');
-        $type = $this->request->param('type', 1);
-        if ($this->request->isAjax()) {
-            $investigation_times = getInvestigationTimes($area_id);
-            $this->returnData['data'] = $this->model::where([
-                'investigation_times' => $investigation_times,
-                'house_id' => $house_id,
-                ])->select();
-            $this->returnData['code'] = 1;
-            $this->success();
-        }
+        $investigation_times = $this->request->param('investigation_times');
 
         $this->view->assign([
-            'type' => $type,
-            'area_id' => $area_id,
+            'investigation_times' => $investigation_times,
             'house_id' => $house_id,
             'typeList' => (new $this->model)->getTypeList()
         ]);
         return $this->view->fetch();
+    }
+
+    public function getInvestigationList()
+    {
+        if ($this->request->isAjax()) {
+            $type = $this->request->param('type');
+            $house_id = $this->request->param('house_id');
+            $investigation_times = $this->request->param('investigation_times');
+            $map = [
+                ['investigation_times', '=', $investigation_times],
+                ['house_id', '=', $house_id],
+                ['type', '=', $type],
+            ];
+            $list = $this->model::where($map)->select();
+            $this->returnData['data'] = $list;
+            $this->returnData['code'] = 1;
+            $this->success('ppp');
+        }
     }
 
     /**

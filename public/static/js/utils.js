@@ -91,69 +91,10 @@
         return pattern.test(phone);
     }
 
-    const caller = {
-        success: function (param) {
-            layer.config({
-                extend: 'skin/blue.css',
-            }).open({
-                type: 1,
-                title: param.info ? param.info : '拨号成功！',
-                closeBtn: 2,
-                area: '400px;',
-                shade: 0.8,
-                id: 'LAY_layuipro',
-                btnAlign: 'c',
-                moveType: 1,
-                skin: 'layer-ext-blue',
-                content: `
-                            <div style="padding: 50px; line-height: 30px; font-weight: 300;">
-                                <p>请在<span class="fs-3 clock px-2">10</span>秒内用手机拨打号码：<h3>${param.data.xNumber}</h3> 进行通话。</p>
-                            </div>
-                        `,
-                success: function (layero, index) {
-                    // 10秒倒计时
-                    let t = 10;
-                    let time = document.getElementsByClassName("clock")[0];
-                    let getTime = function () {
-                        t--;
-                        time.innerHTML = t;
-                        if (t < 0) {
-                            clearInterval(inter);
-                            // 关闭当前窗
-                            layer.close(index);
-                        }
-                    };
-
-                    let inter = setInterval(getTime, 1000);
-                }
-            });
-        },
-        fail: function (param) {
-            layer.config({
-                extend: 'skin/red.css',
-            }).open({
-                title: param.info ? param.info : '温馨提示',
-                type: 1,
-                area: '400px',
-                shade: 0.8,
-                id: 'LAY_layuipro',
-                btnAlign: 'c',
-                closeBtn: 2,
-                moveType: 1,
-                skin: 'layer-ext-red',
-                content: `
-                        <div style="padding: 50px; line-height: 30px; font-weight: 300;">
-                            <p>${param.msg}</p>
-                        </div>
-                    `
-            })
-        }
-    }
 
     return {
         getDateTime,
         cookie,
-        caller,
         isPhone,
     }
 }));

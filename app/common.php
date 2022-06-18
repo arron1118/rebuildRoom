@@ -10,6 +10,10 @@ function createToken($password)
 function getInvestigationTimes($areaId)
 {
     $area = \app\common\model\Area::find($areaId);
+    if (!$area) {
+        return 0;
+    }
+
     if ($area->investigation_times_one === 1) {
         return 1;
     }

@@ -51,30 +51,39 @@
             </thead>
         </table>
         <script type="text/html" id="investigation_times_one">
-            {{# if(d.investigation_times_one === 1) { }}
+            {{# if(d.investigation_times_one === 0) { }}
+            <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } else if(d.investigation_times_one === 1) { }}
             <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
                    lay-filter="statusFilter" checked>
             {{# } else { }}
             <input type="checkbox" name="investigation_times_one" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter">
+                   lay-filter="statusFilter" disabled>
             {{# } }}
         </script>
         <script type="text/html" id="investigation_times_two">
-            {{# if(d.investigation_times_two === 1) { }}
+            {{# if(d.investigation_times_two === 0) { }}
+            <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } else if(d.investigation_times_two === 1) { }}
             <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
                    lay-filter="statusFilter" checked>
             {{# } else { }}
             <input type="checkbox" name="investigation_times_two" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter">
+                   lay-filter="statusFilter" disabled>
             {{# } }}
         </script>
         <script type="text/html" id="investigation_times_three">
-            {{# if(d.investigation_times_three === 1) { }}
+            {{# if(d.investigation_times_three === 0) { }}
+            <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
+                   lay-filter="statusFilter">
+            {{# } else if(d.investigation_times_three === 1) { }}
             <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
                    lay-filter="statusFilter" checked>
             {{# } else { }}
             <input type="checkbox" name="investigation_times_three" value="{{d.id}}" lay-skin="switch" lay-text="开启|停止"
-                   lay-filter="statusFilter">
+                   lay-filter="statusFilter" disabled>
             {{# } }}
         </script>
         <script type="text/html" id="currentTableBar">
@@ -162,7 +171,7 @@
                         }
 
                         layer.msg(res.msg, option)
-                    })
+                    });
                 });
             }
         });
@@ -171,6 +180,7 @@
             $.post('{:url("/area/update")}', param, function (res) {
                 if (res.code === 1) {
                     option.icon = 1
+                    reloadTable()
                 }
 
                 layer.msg(res.msg, option)
@@ -186,9 +196,16 @@
                 parent.layer.confirm('停止后，可能会影响区域排查', { icon: 3, title: '提示' }, function (index) {
                     update(params)
                     parent.layer.close(index)
+                }, function () {
+                    reloadTable()
                 })
             } else {
-                update(params)
+                parent.layer.confirm('开启后，前一轮排查将会停止', { icon: 3, title: '提示' }, function (index) {
+                    update(params)
+                    parent.layer.close(index)
+                }, function () {
+                    reloadTable()
+                })
             }
         })
 
