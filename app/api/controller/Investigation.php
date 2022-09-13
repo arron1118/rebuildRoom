@@ -189,24 +189,7 @@ class Investigation extends ApiController
                 $this->returnApiData('未找到相关排查数据');
             }
 
-            if ($params['type'] !== 3) {
-                $house = House::find($params['house_id']);
-                $type = $params['type'] === 2 ? 2 : 1;
-                switch ($params['investigation_times']) {
-                    case 2:
-                        $house->investigation_times_two_status = $type;
-                        break;
-
-                    case 3:
-                        $house->investigation_times_three_status = $type;
-                        break;
-
-                    default:
-                        $house->investigation_times_one_status = $type;
-                        break;
-                }
-                $house->save();
-
+            if (isset($params['type']) && $params['type'] !== 3) {
                 switch ($params['type']) {
                     case 1:
                         $params['crack_images'] = implode(',', $this->upload('crack_images'));
