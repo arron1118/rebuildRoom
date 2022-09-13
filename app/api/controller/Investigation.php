@@ -161,7 +161,9 @@ class Investigation extends ApiController
      */
     public function read($id)
     {
-        //
+        $this->returnData['data'] = $this->model::find($id);
+        $this->returnData['code'] = 1;
+        $this->returnApiData(lang('Done'));
     }
 
     /**
@@ -173,7 +175,68 @@ class Investigation extends ApiController
      */
     public function update(Request $request, $id)
     {
-        //
+        if ($request->isPost()) {
+            $params = $request->only(['title', 'area_id', 'building_id', 'house_id', 'type', 'images', 'image_time', 'description', 'crack_area', 'crack_sum', 'crack_images', 'crack_description', 'crack_image_time', 'refuse_images', 'refuse_image_time', 'refuse_reason']);
+            $params['investigation_times'] = getInvestigationTimes($params['area_id']);
+            $params['user_id'] = $this->userInfo->id;
+            $params['type'] = (int) $params['type'];
+
+            if (!$id) {
+                $this->returnApiData('未找到套房排查ID：id');
+            }
+            $investigation = $this->model::find($id);
+            if (!$investigation) {
+                $this->returnApiData('未找到相关排查数据');
+            }
+
+            if ($params['type'] !== 3) {
+                $house = House::find($params['house_id']);
+                $type = $params['type'] === 2 ? 2 : 1;
+                switch ($params['investigation_times']) {
+                    case 2:
+                        $house->investigation_times_two_status = $type;
+                        break;
+
+                    case 3:
+                        $house->investigation_times_three_status = $type;
+                        break;
+
+                    default:
+                        $house->investigation_times_one_status = $type;
+                        break;
+                }
+                $house->save();
+
+                switch ($params['type']) {
+                    case 1:
+                        $params['crack_images'] = implode(',', $this->upload('crack_images'));
+                        if ($params['crack_images']) {
+                            $params['crack_image_time'] = isset($params['crack_image_time']) ? strtotime($params['crack_image_time']) : time();
+                        }
+                        break;
+
+                    case 2:
+                        $params['refuse_images'] = implode(',', $this->upload('refuse_images'));
+                        if ($params['refuse_images']) {
+                            $params['refuse_image_time'] = isset($params['refuse_image_time']) ? strtotime($params['refuse_image_time']) : time();
+                        }
+                        break;
+
+                    default:
+                        $params['images'] = implode(',', $this->upload('images'));
+                        if ($params['images']) {
+                            $params['image_time'] = isset($params['image_time']) ? strtotime($params['image_time']) : time();
+                        }
+                        break;
+                }
+            }
+
+            $investigation->save($params);
+            $this->returnData['code'] = 1;
+            $this->returnApiData(lang('Done'));
+        }
+
+        $this->returnApiData();
     }
 
     /**
