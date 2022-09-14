@@ -176,7 +176,7 @@ class Investigation extends ApiController
     public function update(Request $request, $id)
     {
         if ($request->isPost()) {
-            $params = $request->only(['title', 'area_id', 'building_id', 'house_id', 'type', 'images', 'image_time', 'description', 'crack_area', 'crack_sum', 'crack_images', 'crack_description', 'crack_image_time', 'refuse_images', 'refuse_image_time', 'refuse_reason']);
+            $params = $request->only(['title', 'images', 'image_time', 'description', 'crack_area', 'crack_sum', 'crack_description', 'refuse_reason']);
             $params['investigation_times'] = getInvestigationTimes($params['area_id']);
             $params['user_id'] = $this->userInfo->id;
             $params['type'] = (int) $params['type'];
@@ -187,21 +187,6 @@ class Investigation extends ApiController
             $investigation = $this->model::find($id);
             if (!$investigation) {
                 $this->returnApiData('未找到相关排查数据');
-            }
-
-            $params['refuse_images'] = implode(',', $this->upload('refuse_images'));
-            if ($params['refuse_images']) {
-                $params['refuse_image_time'] = isset($params['refuse_image_time']) ? strtotime($params['refuse_image_time']) : time();
-            }
-
-            $params['crack_images'] = implode(',', $this->upload('crack_images'));
-            if ($params['crack_images']) {
-                $params['crack_image_time'] = isset($params['crack_image_time']) ? strtotime($params['crack_image_time']) : time();
-            }
-
-            $params['images'] = implode(',', $this->upload('images'));
-            if ($params['images']) {
-                $params['image_time'] = isset($params['image_time']) ? strtotime($params['image_time']) : time();
             }
 
             $investigation->save($params);
