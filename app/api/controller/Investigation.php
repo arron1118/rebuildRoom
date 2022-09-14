@@ -177,7 +177,6 @@ class Investigation extends ApiController
     {
         if ($request->isPost()) {
             $params = $request->only(['title', 'images', 'image_time', 'description', 'crack_area', 'crack_sum', 'crack_description', 'refuse_reason']);
-            $params['investigation_times'] = getInvestigationTimes($params['area_id']);
             $params['user_id'] = $this->userInfo->id;
             $params['type'] = (int) $params['type'];
 
