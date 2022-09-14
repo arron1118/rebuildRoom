@@ -178,7 +178,6 @@ class Investigation extends ApiController
         if ($request->isPost()) {
             $params = $request->only(['title', 'images', 'image_time', 'description', 'crack_area', 'crack_sum', 'crack_description', 'refuse_reason']);
             $params['user_id'] = $this->userInfo->id;
-            $params['type'] = (int) $params['type'];
 
             if (!$id) {
                 $this->returnApiData('未找到套房排查ID：id');
