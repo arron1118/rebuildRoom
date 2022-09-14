@@ -189,29 +189,19 @@ class Investigation extends ApiController
                 $this->returnApiData('未找到相关排查数据');
             }
 
-            if (isset($params['type']) && $params['type'] !== 3) {
-                switch ($params['type']) {
-                    case 1:
-                        $params['crack_images'] = implode(',', $this->upload('crack_images'));
-                        if ($params['crack_images']) {
-                            $params['crack_image_time'] = isset($params['crack_image_time']) ? strtotime($params['crack_image_time']) : time();
-                        }
-                        break;
+            $params['refuse_images'] = implode(',', $this->upload('refuse_images'));
+            if ($params['refuse_images']) {
+                $params['refuse_image_time'] = isset($params['refuse_image_time']) ? strtotime($params['refuse_image_time']) : time();
+            }
 
-                    case 2:
-                        $params['refuse_images'] = implode(',', $this->upload('refuse_images'));
-                        if ($params['refuse_images']) {
-                            $params['refuse_image_time'] = isset($params['refuse_image_time']) ? strtotime($params['refuse_image_time']) : time();
-                        }
-                        break;
+            $params['crack_images'] = implode(',', $this->upload('crack_images'));
+            if ($params['crack_images']) {
+                $params['crack_image_time'] = isset($params['crack_image_time']) ? strtotime($params['crack_image_time']) : time();
+            }
 
-                    default:
-                        $params['images'] = implode(',', $this->upload('images'));
-                        if ($params['images']) {
-                            $params['image_time'] = isset($params['image_time']) ? strtotime($params['image_time']) : time();
-                        }
-                        break;
-                }
+            $params['images'] = implode(',', $this->upload('images'));
+            if ($params['images']) {
+                $params['image_time'] = isset($params['image_time']) ? strtotime($params['image_time']) : time();
             }
 
             $investigation->save($params);
